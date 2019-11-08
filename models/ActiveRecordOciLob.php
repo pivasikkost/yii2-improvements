@@ -8,7 +8,7 @@ use \yii\db\Query;
 
 /**
  * ActiveRecordOciLob is the base class for classes representing relational data in terms of objects,
- * that should work correctly with LOB data in Oracle DB. Used Oci8Connection.
+ * that should work correctly with LOB data in Oracle DB. Used Oci8Connection (in my case - neconix\src\Oci8Connection).
  * 
  * Just inherit your gii generated model class not from ActiveRecord, but from this class,
  * set $clob_attributes, $blob_attributes and $dbOciLobName to work.
