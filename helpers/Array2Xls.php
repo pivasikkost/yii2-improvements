@@ -23,11 +23,11 @@ class Array2Xls
      * ```php
      * $this->redirect(
      *     Array2Xls::saveAsXls(
-     *         RelatedFaces::find()->asArray()->all(),
-     *         'Связанные с банком лица',
-     *         RelatedFaces::attributeLabels(),
-     *         [20, 60, 60], //['EID_INN' => 20]
-     *         ['EID_INN' => 'number']
+     *         SomeModel::find()->asArray()->all(),
+     *         'Some title',
+     *         SomeModel::attributeLabels(),
+     *         [20, 60, 60], //['some_attribute' => 20]
+     *         ['some_attribute' => 'number']
      *     )
      * );
      * ```
@@ -62,13 +62,7 @@ class Array2Xls
         //  начало основного архива в А2
         $sheet = $activeSheet->fromArray($arrayData, NULL, 'A2');
         
-        
         $headArray = $col_titles; // названия колонок-заголовков 
-        // берем заголовки из базы
-        /*$rusfieldname = Yii::$app->db_v_sppr_riski_rep
-                ->createCommand("select RUS_NAME from QUERIES_FIELD_NAME where BIZ_ACTION_SQL = '12' order by ID asc")
-                ->queryAll();
-        $rusfield = array_column($rusfieldname, 'RUS_NAME');*/
 
         // расчет границ основного массива: по оси Х $sizeX, по оси Y $sizeY
         $sizeX = count($headArray);
@@ -137,7 +131,7 @@ class Array2Xls
             'fill' => [
                 'fillType' => Style\Fill::FILL_SOLID,
                 'color' => [
-                    'argb' => 'FF23AAC7', // corporativen rncb
+                    'argb' => 'FF23AAC7', // corporative color
                 ],
             ],
         ];
