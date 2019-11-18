@@ -100,7 +100,10 @@ class ActiveRecordOciLob extends ActiveRecord
         $fields_blob = static::$blob_attributes;
         $fields_clob = static::$clob_attributes; // array with the fields to be updated
         $fields_dirty = $this->getDirtyAttributes($attributeNames); // changed fields with values
-        $exist_fields_dirty_clob = array_intersect(array_keys($fields_dirty), $fields_clob);
+        $exist_fields_dirty_clob = array_values(
+                array_intersect(array_keys($fields_dirty), $fields_clob)
+        );
+
         
         if (empty($fields_dirty)) {
             $this->afterSave(false, $fields_dirty);
@@ -127,7 +130,7 @@ class ActiveRecordOciLob extends ActiveRecord
         }
         $where_stmt = implode(" AND ", $where);
         //$returning = implode(", ", array_merge($fields_clob, $fields_blob));
-        $returning = implode(", ", $fields_clob); // array to string to fill 'returning' clause in the sql
+        $returning = implode(", ", $exist_fields_dirty_clob); // array to string to fill 'returning' clause in the sql
         $into_stmt = implode(", ", $into); // array to string to fill 'into' clause in the sql
 
         $sql = "UPDATE " . static::tableName() . "
@@ -160,7 +163,7 @@ class ActiveRecordOciLob extends ActiveRecord
             return false;
         }
         if ($exist_fields_dirty_clob) {
-            foreach ($fields_clob as $key => $name) {
+            foreach ($exist_fields_dirty_clob as $key => $name) {
                 //if (!$my_lob[$key]->savefile( Yii::getAlias('@webroot/uploads/') . $model->files[0]->name )) {
                 if (!$my_lob[$key]->save($this->$name)) {
                     oci_rollback($db);
