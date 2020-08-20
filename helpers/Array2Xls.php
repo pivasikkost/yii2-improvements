@@ -47,7 +47,7 @@ class Array2Xls
      * 
      * return string Name of saved xlsx file with path
      */
-    public static function saveAsXls($data, $title, $col_titles, $col_width = 20, $format = null)
+    public static function saveAsXls($data, $title, $col_titles = null, $col_width = 20, $format = null)
     {
         // excel начало создание листа,
         $spreadsheet = new Spreadsheet();
