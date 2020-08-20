@@ -35,8 +35,9 @@ class Array2Xls
      * @param array $data
      * @param string $title
      * @param array $col_titles Headings for each column to be used 
-     * in the resulting xls file. You can use for this construct like 
-     * array_values(YourModel::attributeLabels()).
+     * in the resulting xls file. It should be an array of the form
+     * ['some_attribute' => 'some_attribute_title', ...] .
+     * Warning! Column order should be the same as in $data.
      * @param int|array $col_width Width for each column to be used 
      * in the resulting xls file. If a number is passed, then is the same width 
      * columns will be used. 
@@ -56,11 +57,19 @@ class Array2Xls
                 ->setCreator($username) // автор файла
                 ->setLastModifiedBy($username); // последний изменивший
         $activeSheet = $spreadsheet->getActiveSheet();
-        // название листа (31 символ)
-        $activeSheet->setTitle($title);
+        $activeSheet->setTitle(mb_substr($title, 0, 31)); // Максимум 31 символ разрешено использовать
         $arrayData = array_values($data);
         //  начало основного архива в А2
         $sheet = $activeSheet->fromArray($arrayData, NULL, 'A2');
+        
+        if (!isset($col_titles)) {
+            if (isset($data[0])) {
+                $col_titles = array_keys($data[0]);
+                $col_titles = array_combine($col_titles, $col_titles);
+            } else {
+                $col_titles = [];
+            }
+        }
         
         $headArray = $col_titles; // названия колонок-заголовков 
 
@@ -73,11 +82,14 @@ class Array2Xls
         foreach ($alphabet as $char) {
             $columnNamesPossible[] = 'A' . $char;
         }
-        $columnNamesPossible = array_merge($alphabet, $columnNamesPossible);
+        foreach ($alphabet as $char) {
+            $columnNamesPossible[] = 'B' . $char;
+        }
+        $columnNamesPossible = array_merge($alphabet, $columnNamesPossible); // Max 78
 
-        $columnNames = array_slice($columnNamesPossible, 0 , $sizeX);
+        $columnNames = array_slice($columnNamesPossible, 0 , $sizeX); // [0 => 'A', 1 => 'B', ...]
         $columnNameLast = $columnNames[count($columnNames) - 1];
-        $columnNamesAssoc = array_combine(array_keys($col_titles), $columnNames);
+        $columnNamesAssoc = array_combine(array_keys($col_titles), $columnNames); // ['some_attribute' => 'A', ...]
         
         
         // выравнивание столбцов по установленным размерам ширины
@@ -85,17 +97,16 @@ class Array2Xls
         if (is_array($col_width)) {
             // is associative?
             if (count(array_filter(array_keys($col_width), 'is_string')) > 0) {
-                $columnSize = array_fill(0, $sizeX, $col_width_default);
+                $columnSize = array_fill(0, $sizeX, $col_width_default); // [ 0 => 20, 1 => 20, ...]
                 foreach ($col_width as $key => $value) {
-                    $columnSize[
-                        array_search($columnNamesAssoc[$key], $columnNames)
-                    ] = $value;
+                    $index = array_search($columnNamesAssoc[$key], $columnNames);
+                    $columnSize[$index] = $value;
                 }
             } else {
                 $columnSize = $col_width;
             }
         } elseif (!empty($col_width)) {
-            $columnSize = array_fill(0, $sizeX, $col_width);
+            $columnSize = array_fill(0, $sizeX, $col_width); // [ 0 => 20, 1 => 20, ...]
         }
         foreach ($columnNames as $index => $name) {
             if (!empty($columnSize[$index])) {
@@ -110,7 +121,7 @@ class Array2Xls
         $activeSheet->setAutoFilter('A1:' . $columnNameLast . '1'); // установка авто фильтров
         $activeSheet->getRowDimension('1')->setRowHeight(40);	// установка высоты 1й строки заголовков 
         $activeSheet->getPageSetup()->setRowsToRepeatAtTopByStartAndEnd(1,1); // печать заголовков на каждой странице
-        $activeSheet->freezePane('B2'); // зафиксировать заголовки (верхнюю строку до А2)
+        $activeSheet->freezePane('B2'); // зафиксировать строки выше и слева от ячейки B2 (т.е. строка 1 и столбец A)
 
         // архив для применения стилей и форматирования заголовков
         $styleHead = [
@@ -158,13 +169,6 @@ class Array2Xls
         $activeSheet->getStyle('A2:' . $columnNameLast . $sizeY)
                 ->applyFromArray($styleArray);
         
-        /*// весь основной массив
-        for ($x = 1; $x < $sizeX + 1; $x++) {
-            for ($y = 2; $y < $sizeY + 2; $y++) {
-                $sheet->getStyleByColumnAndRow($x, $y)->applyFromArray($styleArray);
-            }
-        } */
-        
         // Set a specific cell format
         if (isset($format)) {
             foreach ($format as $attr => $value) {
@@ -184,5 +188,12 @@ class Array2Xls
         $writer->save($fullFileName);
         
         return '/' . $fullFileName;
+        
+        /*// выводим файл в браузер
+        header('Content-Type: application/vnd.ms-excel; charset=windows-1251;');
+        header('Content-Disposition: attachment;filename="Some Name.xls"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        */
     }
 }
