@@ -5,7 +5,7 @@ namespace app\components\db\oci;
 /**
  * Fixes \yii\db\oci\Schema problems when using replication.
  *
- * @author Konstantin Zosimenko <ZosimenkoKV@rncb.ru>
+ * @author Konstantin Zosimenko <pivasikkost@gmail.com>
  * @since 2.0
  */
 class Schema extends \yii\db\oci\Schema
