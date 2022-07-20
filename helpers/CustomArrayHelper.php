@@ -46,7 +46,8 @@ class CustomArrayHelper
     
     /**
      * Returns an array without specified columns.
-     * The input array should be multidimensional
+     * The input array should be multidimensional.
+     * Сan only be used for associative arrays!!!
      * 
      * @link https://stackoverflow.com/questions/16564650/best-way-to-delete-column-from-multidimensional-array
      * For example,
@@ -66,9 +67,14 @@ class CustomArrayHelper
      * @param array $array
      * @param string[] $columnKeys
      * @return bool <b>TRUE</b> on success or <b>FALSE</b> on failure.
+     - @throws \Exception
      */
     public static function deleteColumns(array &$array, array $columnKeys): bool
     {
+        if (!is_string(array_keys($array)[0])) {
+            throw new \Exception('Передан не ассоциативный массив');
+        }
+        
         return array_walk(
                 $array,
                 function (&$value) use ($columnKeys) {
